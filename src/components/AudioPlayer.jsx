@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { api } from '../services/api';
 import { formatDuration } from '../utils/format';
+import { saveLastPlayed } from '../utils/storage';
 
-const AudioPlayer = ({ currentFile, onNext, onPrev }) => {
+const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
     const audioRef = useRef(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [currentTime, setCurrentTime] = useState(0);
@@ -11,8 +12,14 @@ const AudioPlayer = ({ currentFile, onNext, onPrev }) => {
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
 
+    // Load and play file when currentFile changes
     useEffect(() => {
         if (currentFile && audioRef.current) {
+            // Set initial time if provided (from localStorage)
+            if (initialTime > 0) {
+                audioRef.current.currentTime = initialTime;
+            }
+
             audioRef.current.play()
                 .then(() => {
                     setIsPlaying(true);
@@ -22,7 +29,20 @@ const AudioPlayer = ({ currentFile, onNext, onPrev }) => {
                     setIsPlaying(false);
                 });
         }
-    }, [currentFile]);
+    }, [currentFile, initialTime]);
+
+    // Save playback position to localStorage periodically
+    useEffect(() => {
+        if (!currentFile || !isPlaying) return;
+
+        const interval = setInterval(() => {
+            if (audioRef.current && currentFile) {
+                saveLastPlayed(currentFile.id, audioRef.current.currentTime);
+            }
+        }, 5000); // Save every 5 seconds
+
+        return () => clearInterval(interval);
+    }, [currentFile, isPlaying]);
 
     const togglePlay = () => {
         if (audioRef.current.paused) {
@@ -90,8 +110,7 @@ const AudioPlayer = ({ currentFile, onNext, onPrev }) => {
                         <FontAwesomeIcon icon="music" size="lg" />
                     </div>
                     <div className="overflow-hidden">
-                        <h3 className="font-bold text-white truncate text-lg">{currentFile.title}</h3>
-                        <p className="text-sm text-gray-400 truncate">{currentFile.description || 'No description'}</p>
+                        <h3 className="font-bold text-white text-lg">{currentFile.title}</h3>
                     </div>
                 </div>
 

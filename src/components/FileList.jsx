@@ -46,7 +46,7 @@ const FileList = ({ files, onPlay, currentFileId }) => {
         <div className="w-full bg-gray-800 rounded-xl shadow-lg border-opacity-0 overflow-hidden">
             {/* Toolbar */}
             <div className="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-900/50">
-                
+
                 <input
                     type="text"
                     placeholder="Ieškoti įrašų..."
@@ -62,7 +62,7 @@ const FileList = ({ files, onPlay, currentFileId }) => {
                     Pavadinimas <FontAwesomeIcon icon={getSortIcon('title')} />
                 </div>
                 <div className="hidden md:block md:col-span-2 cursor-pointer hover:text-white flex items-center gap-2" onClick={() => requestSort('recordDate')}>
-                    Įrašymo data <FontAwesomeIcon icon={getSortIcon('recordDate')} />
+                    Įrašo data <FontAwesomeIcon icon={getSortIcon('recordDate')} />
                 </div>
                 <div className="col-span-4 md:col-span-2 cursor-pointer hover:text-white flex items-center gap-2" onClick={() => requestSort('uploadDate')}>
                     Įkelta <FontAwesomeIcon icon={getSortIcon('uploadDate')} />
