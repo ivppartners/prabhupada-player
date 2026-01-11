@@ -39,6 +39,22 @@ export const api = {
     },
 
     /**
+     * Fetch list of Krishna book files
+     * @returns {Promise<Array>} List of mapped files
+     */
+    async getKrishnaFiles() {
+        try {
+            const response = await fetch(`${API_URL}/krishna`);
+            if (!response.ok) throw new Error('Failed to fetch Krishna files');
+            const data = await response.json();
+            return data.map(mapFile);
+        } catch (error) {
+            console.error('API Error:', error);
+            return [];
+        }
+    },
+
+    /**
      * Get direct stream URL for audio
      * @param {string} id 
      * @returns {string}

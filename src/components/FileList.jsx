@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { formatDate } from '../utils/format';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const FileList = ({ files, onPlay, currentFileId }) => {
     const [sortConfig, setSortConfig] = useState({ key: 'uploadDate', direction: 'descending' });
@@ -43,67 +44,94 @@ const FileList = ({ files, onPlay, currentFileId }) => {
     };
 
     return (
-        <div className="w-full bg-gray-800 rounded-xl shadow-lg border-opacity-0 overflow-hidden">
+        <div className="w-full bg-gray-900/40 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/5 overflow-hidden flex flex-col h-full max-h-[80vh]">
             {/* Toolbar */}
-            <div className="p-4 border-b border-gray-700 flex justify-between items-center bg-gray-900/50">
-
-                <input
-                    type="text"
-                    placeholder="Ieškoti įrašų..."
-                    className="bg-gray-700 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full text-sm transiton-all"
-                    onChange={(e) => setFilter(e.target.value)}
-                />
+            <div className="p-4 border-b border-white/5 flex gap-4 bg-black/20">
+                <div className="relative w-full">
+                    <FontAwesomeIcon icon="search" className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500" />
+                    <input
+                        type="text"
+                        placeholder="Ieškoti įrašų..."
+                        className="w-full bg-gray-800/50 text-white pl-10 pr-4 py-3 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500/50 border border-white/5 transition-all placeholder-gray-500"
+                        onChange={(e) => setFilter(e.target.value)}
+                    />
+                </div>
             </div>
 
             {/* Table Header */}
-            <div className="grid grid-cols-12 gap-4 px-8 py-3 text-xs font-bold text-gray-400 uppercase tracking-wider bg-gray-800 border-b border-gray-700 w-full select-none">
-                <div className="col-span-2 md:col-span-1 text-center">Groti</div>
-                <div className="col-span-6 md:col-span-4 cursor-pointer hover:text-white flex items-center gap-2" onClick={() => requestSort('title')}>
+            <div className="grid grid-cols-12 gap-4 px-8 py-4 text-xs font-bold text-gray-400 uppercase tracking-widest bg-black/20 border-b border-white/5 w-full select-none sticky top-0 z-10 backdrop-blur-md">
+                <div className="col-span-2 md:col-span-1 text-center">#</div>
+                <div className="col-span-6 md:col-span-4 cursor-pointer hover:text-white flex items-center gap-2 transition-colors" onClick={() => requestSort('title')}>
                     Pavadinimas <FontAwesomeIcon icon={getSortIcon('title')} />
                 </div>
-                <div className="hidden md:block md:col-span-2 cursor-pointer hover:text-white flex items-center gap-2" onClick={() => requestSort('recordDate')}>
-                    Įrašo data <FontAwesomeIcon icon={getSortIcon('recordDate')} />
+                <div className="hidden md:block md:col-span-2 cursor-pointer hover:text-white flex items-center gap-2 transition-colors" onClick={() => requestSort('recordDate')}>
+                    Datavimas <FontAwesomeIcon icon={getSortIcon('recordDate')} />
                 </div>
-                <div className="col-span-4 md:col-span-2 cursor-pointer hover:text-white flex items-center gap-2" onClick={() => requestSort('uploadDate')}>
+                <div className="col-span-4 md:col-span-2 cursor-pointer hover:text-white flex items-center gap-2 transition-colors" onClick={() => requestSort('uploadDate')}>
                     Įkelta <FontAwesomeIcon icon={getSortIcon('uploadDate')} />
                 </div>
-                <div className="hidden md:block md:col-span-3">Aprašymas</div>
+                <div className="hidden md:block md:col-span-3">Info</div>
             </div>
 
             {/* List */}
-            <div className="divide-y divide-gray-700 max-h-[calc(100vh-250px)] overflow-y-auto custom-scrollbar w-full">
-                {sortedFiles.map((file) => (
-                    <div
-                        key={file.id}
-                        className={`grid grid-cols-12 gap-4 py-4 px-8 items-center hover:bg-gray-700/50 transition-colors group ${currentFileId === file.id ? 'bg-indigo-900/30 border-l-4 border-indigo-500' : 'border-l-4 border-transparent'}`}
-                    >
-                        <div className="col-span-2 md:col-span-1 text-center">
-                            <button
-                                onClick={() => onPlay(file)}
-                                className={`w-10 h-10 rounded-full flex items-center justify-center transition-all ${currentFileId === file.id ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/50' : 'bg-gray-700 text-gray-400 group-hover:bg-indigo-600 group-hover:text-white'}`}
-                            >
-                                <FontAwesomeIcon icon={currentFileId === file.id ? "music" : "play"} />
-                            </button>
-                        </div>
+            <div className="overflow-y-auto custom-scrollbar flex-1 p-2 space-y-1">
+                <AnimatePresence>
+                    {sortedFiles.map((file, index) => (
+                        <motion.div
+                            key={file.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95 }}
+                            transition={{ delay: index * 0.03, duration: 0.2 }}
+                            onClick={() => onPlay(file)}
+                            className={`grid grid-cols-12 gap-4 py-3 px-6 items-center rounded-xl cursor-pointer group transition-all duration-200 border border-transparent ${currentFileId === file.id
+                                    ? 'bg-indigo-600/20 border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.15)]'
+                                    : 'hover:bg-white/5 hover:border-white/5'
+                                }`}
+                        >
+                            <div className="col-span-2 md:col-span-1 text-center">
+                                <div className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 ${currentFileId === file.id
+                                        ? 'bg-indigo-500 text-white scale-110 shadow-lg'
+                                        : 'bg-gray-800 text-gray-500 group-hover:bg-gray-700 group-hover:text-white'
+                                    }`}>
+                                    <FontAwesomeIcon icon={currentFileId === file.id ? "chart-bar" : "play"} className={currentFileId === file.id && "animate-pulse"} size="xs" />
+                                </div>
+                            </div>
 
-                        <div className="col-span-6 md:col-span-4">
-                            <div className="font-medium text-white truncate text-sm">{file.title || 'Be pavadinimo'}</div>
-                            <div className="text-xs text-gray-400 truncate">{file.location} • {file.book}</div>
-                        </div>
+                            <div className="col-span-6 md:col-span-4 min-w-0">
+                                <div className={`font-semibold truncate text-sm transition-colors ${currentFileId === file.id ? 'text-indigo-300' : 'text-gray-200 group-hover:text-white'}`}>
+                                    {file.title || 'Be pavadinimo'}
+                                </div>
+                                <div className="text-xs text-gray-500 truncate flex gap-2">
+                                    {file.book && <span className="text-indigo-400/80">{file.book}</span>}
+                                    {file.location && <span>• {file.location}</span>}
+                                </div>
+                            </div>
 
-                        <div className="hidden md:block md:col-span-2 text-sm text-gray-400">{formatDate(file.recordDate) || file.year}</div>
-                        <div className="col-span-4 md:col-span-2 text-sm text-gray-400">{formatDate(file.uploadDate)}</div>
+                            <div className="hidden md:block md:col-span-2 text-xs text-gray-500 font-mono">
+                                {formatDate(file.recordDate) || file.year || '-'}
+                            </div>
 
-                        <div className="hidden md:block md:col-span-3 text-sm text-gray-400 truncate group-hover:text-gray-300" title={file.description}>
-                            {file.description}
-                        </div>
-                    </div>
-                ))}
+                            <div className="col-span-4 md:col-span-2 text-xs text-gray-500 font-mono">
+                                {formatDate(file.uploadDate)}
+                            </div>
+
+                            <div className="hidden md:block md:col-span-3 text-xs text-gray-500 truncate group-hover:text-gray-400 max-w-full">
+                                {file.description}
+                            </div>
+                        </motion.div>
+                    ))}
+                </AnimatePresence>
 
                 {sortedFiles.length === 0 && (
-                    <div className="p-12 text-center text-gray-500">
-                        Pagal jūsų paiešką įrašų nerasta.
-                    </div>
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="p-12 text-center text-gray-500 flex flex-col items-center gap-4"
+                    >
+                        <FontAwesomeIcon icon="search" size="2x" className="opacity-20" />
+                        <p>Pagal jūsų paiešką įrašų nerasta.</p>
+                    </motion.div>
                 )}
             </div>
         </div>
