@@ -28,7 +28,7 @@ export const api = {
      */
     async getFiles() {
         try {
-            const response = await fetch(`${API_URL}/get`);
+            const response = await fetch(`${API_URL}/published`);
             if (!response.ok) throw new Error('Failed to fetch files');
             const data = await response.json();
             return data.map(mapFile);
