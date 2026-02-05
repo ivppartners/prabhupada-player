@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import FileList from './FileList';
 import { useDeepLink } from '../hooks/useDeepLink';
 
-const FilePage = ({ fetchMethod, onPlay, onFilesLoaded, currentFileId }) => {
+const FilePage = ({ fetchMethod, onPlay, onFilesLoaded, currentFileId, filter }) => {
     const [files, setFiles] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -37,6 +37,7 @@ const FilePage = ({ fetchMethod, onPlay, onFilesLoaded, currentFileId }) => {
             files={files}
             onPlay={(file) => onPlay(file)} // Play from start by default when clicking
             currentFileId={currentFileId}
+            filter={filter}
         />
     );
 };

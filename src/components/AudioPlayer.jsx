@@ -15,6 +15,7 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
+    const [isDescriptionVisible, setIsDescriptionVisible] = useState(false);
 
     // Load and play file when currentFile changes
     useEffect(() => {
@@ -200,24 +201,34 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
                         <button className="text-gray-400 hover:text-indigo-400 transition-colors p-2" onClick={() => window.open(api.getDownloadUrl(currentFile.id), '_blank')}>
                             <FontAwesomeIcon icon="download" />
                         </button>
+                        <button
+                            className={`text-gray-400 hover:text-indigo-400 transition-colors p-2 ${isDescriptionVisible ? 'text-indigo-400' : ''}`}
+                            onClick={() => setIsDescriptionVisible(!isDescriptionVisible)}
+                            title={isDescriptionVisible ? "Slėpti aprašymą" : "Rodyti aprašymą"}
+                        >
+                            <FontAwesomeIcon icon="info-circle" />
+                        </button>
                     </div>
                 </div>
 
-                {/* Description Box - shown only if description exists */}
-                {currentFile.description && (
-                    <div className="max-w-7xl mx-auto px-4 pb-3 relative z-10">
-                        <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            className="bg-black/20 rounded-lg p-3 border border-white/5"
-                        >
-                            <div className="text-xs font-semibold text-indigo-300 uppercase tracking-wide mb-1">Aprašymas</div>
-                            <div className="text-sm text-gray-200 leading-relaxed whitespace-pre-line">{currentFile.description}</div>
-                        </motion.div>
-                    </div>
-                )}
+                {/* Description Box - shown only if description exists and is visible */}
+                <AnimatePresence>
+                    {currentFile.description && isDescriptionVisible && (
+                        <div className="max-w-7xl mx-auto px-4 pb-3 relative z-10">
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="bg-black/20 rounded-lg p-3 border border-white/5"
+                            >
+                                <div className="text-xs font-semibold text-indigo-300 uppercase tracking-wide mb-1">Aprašymas</div>
+                                <div className="text-sm text-gray-200 leading-relaxed whitespace-pre-line">{currentFile.description}</div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
             </div>
-        </motion.div>
+        </motion.div >
     );
 };
 

@@ -3,13 +3,14 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { api } from './services/api';
 import Layout from './components/Layout';
 import AudioPlayer from './components/AudioPlayer';
-import Navigation from './components/Navigation';
+
 import FilePage from './components/FilePage';
 
 function App() {
   const [playlist, setPlaylist] = useState([]); // Currently visible/active playlist
   const [currentFile, setCurrentFile] = useState(null);
   const [initialTime, setInitialTime] = useState(0);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handlePlay = useCallback((file, params = {}) => { // params can be { startTime: 123 }
     setCurrentFile(file);
@@ -42,8 +43,7 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Layout>
-        <Navigation />
+      <Layout searchQuery={searchQuery} onSearch={setSearchQuery}>
 
         <Routes>
           <Route
@@ -54,6 +54,7 @@ function App() {
                 onPlay={handlePlay}
                 onFilesLoaded={handleFilesLoaded}
                 currentFileId={currentFile?.id}
+                filter={searchQuery}
               />
             }
           />
@@ -65,6 +66,7 @@ function App() {
                 onPlay={handlePlay}
                 onFilesLoaded={handleFilesLoaded}
                 currentFileId={currentFile?.id}
+                filter={searchQuery}
               />
             }
           />
