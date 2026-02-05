@@ -46,7 +46,7 @@ const FileList = ({ files, onPlay, currentFileId, filter = '' }) => {
     return (
         <div className="w-full bg-gray-900/40 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/5 overflow-hidden flex flex-col h-full max-h-[80vh] relative">
             {/* Mobile Background Image & Overlay */}
-            <div className="absolute inset-0 z-0 md:hidden opacity-40 pointer-events-none"
+            <div className="absolute inset-0 z-0 md:hidden opacity-100 pointer-events-none"
                 style={{
                     backgroundImage: `url(${prabhupadaImg})`,
                     backgroundSize: 'cover',
@@ -56,7 +56,7 @@ const FileList = ({ files, onPlay, currentFileId, filter = '' }) => {
             <div className="absolute inset-0 z-0 md:hidden bg-black/70 pointer-events-none" />
 
             {/* Content Container - Ensure z-index is higher than background */}
-            <div className="relative z-10 flex flex-col h-full">
+            <div className="relative z-10 flex flex-col h-full min-h-0">
 
 
                 {/* Table Header */}
@@ -75,7 +75,7 @@ const FileList = ({ files, onPlay, currentFileId, filter = '' }) => {
                 </div>
 
                 {/* List */}
-                <div className="overflow-y-auto custom-scrollbar flex-1 p-2 space-y-1">
+                <div className="overflow-y-auto custom-scrollbar flex-1 p-2 space-y-1 min-h-0">
                     <AnimatePresence>
                         {sortedFiles.map((file, index) => (
                             <motion.div
