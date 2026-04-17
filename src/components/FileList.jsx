@@ -1,11 +1,27 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { formatDate } from '../utils/format';
 import { motion, AnimatePresence } from 'framer-motion';
 import prabhupadaImg from '../assets/prabhupada.png';
 
 const FileList = ({ files, onPlay, currentFileId, filter = '' }) => {
-    const [sortConfig, setSortConfig] = useState({ key: 'uploadDate', direction: 'descending' });
+    const location = useLocation();
+
+    // Determine default sort based on route
+    const isKrishnaRoute = location.pathname.includes('knyga-krisna');
+    const defaultSortKey = isKrishnaRoute ? 'chapter' : 'uploadDate';
+    const defaultSortDirection = isKrishnaRoute ? 'ascending' : 'descending';
+
+    const [sortConfig, setSortConfig] = useState({ key: defaultSortKey, direction: defaultSortDirection });
+
+    // Update sort config if location changes (for when the component doesn't unmount)
+    useEffect(() => {
+        setSortConfig({
+            key: isKrishnaRoute ? 'chapter' : 'uploadDate',
+            direction: isKrishnaRoute ? 'ascending' : 'descending'
+        });
+    }, [isKrishnaRoute]);
 
     const sortedFiles = useMemo(() => {
         let sortableFiles = [...files];
@@ -18,10 +34,20 @@ const FileList = ({ files, onPlay, currentFileId, filter = '' }) => {
         }
         if (sortConfig !== null) {
             sortableFiles.sort((a, b) => {
-                if (a[sortConfig.key] === null || a[sortConfig.key] === undefined || a[sortConfig.key] < b[sortConfig.key]) {
+                let valA = a[sortConfig.key];
+                let valB = b[sortConfig.key];
+
+                let isAEmpty = valA === null || valA === undefined || valA === '';
+                let isBEmpty = valB === null || valB === undefined || valB === '';
+
+                if (isAEmpty && isBEmpty) return 0;
+                if (isAEmpty) return sortConfig.direction === 'ascending' ? -1 : 1;
+                if (isBEmpty) return sortConfig.direction === 'ascending' ? 1 : -1;
+
+                if (valA < valB) {
                     return sortConfig.direction === 'ascending' ? -1 : 1;
                 }
-                if (b[sortConfig.key] === null || b[sortConfig.key] === undefined || a[sortConfig.key] > b[sortConfig.key]) {
+                if (valA > valB) {
                     return sortConfig.direction === 'ascending' ? 1 : -1;
                 }
                 return 0;
@@ -65,9 +91,15 @@ const FileList = ({ files, onPlay, currentFileId, filter = '' }) => {
                     <div className="col-span-6 md:col-span-4 cursor-pointer hover:text-white flex items-center gap-2 transition-colors" onClick={() => requestSort('title')}>
                         Pavadinimas <FontAwesomeIcon icon={getSortIcon('title')} />
                     </div>
-                    <div className="hidden md:block md:col-span-2 cursor-pointer hover:text-white flex items-center gap-2 transition-colors" onClick={() => requestSort('recordDate')}>
-                        Datavimas <FontAwesomeIcon icon={getSortIcon('recordDate')} />
-                    </div>
+                    {isKrishnaRoute ? (
+                        <div className="hidden md:block md:col-span-2 cursor-pointer hover:text-white flex items-center gap-2 transition-colors" onClick={() => requestSort('chapter')}>
+                            Skyrius <FontAwesomeIcon icon={getSortIcon('chapter')} />
+                        </div>
+                    ) : (
+                        <div className="hidden md:block md:col-span-2 cursor-pointer hover:text-white flex items-center gap-2 transition-colors" onClick={() => requestSort('recordDate')}>
+                            Datavimas <FontAwesomeIcon icon={getSortIcon('recordDate')} />
+                        </div>
+                    )}
                     <div className="col-span-4 md:col-span-2 cursor-pointer hover:text-white flex items-center gap-2 transition-colors" onClick={() => requestSort('uploadDate')}>
                         Įkelta <FontAwesomeIcon icon={getSortIcon('uploadDate')} />
                     </div>
@@ -75,7 +107,7 @@ const FileList = ({ files, onPlay, currentFileId, filter = '' }) => {
                 </div>
 
                 {/* List */}
-                <div className="overflow-y-auto custom-scrollbar flex-1 p-2 space-y-1 min-h-0">
+                <div className="overflow-y-auto custom-scrollbar flex-1 p-2 pb-32 space-y-1 min-h-0">
                     <AnimatePresence>
                         {sortedFiles.map((file, index) => (
                             <motion.div
@@ -109,9 +141,15 @@ const FileList = ({ files, onPlay, currentFileId, filter = '' }) => {
                                     </div>
                                 </div>
 
-                                <div className="hidden md:block md:col-span-2 text-xs text-gray-500 font-mono">
-                                    {formatDate(file.recordDate) || file.year || '-'}
-                                </div>
+                                {isKrishnaRoute ? (
+                                    <div className="hidden md:block md:col-span-2 text-xs text-center md:text-left text-gray-300 font-medium">
+                                        {file.chapter || '-'}
+                                    </div>
+                                ) : (
+                                    <div className="hidden md:block md:col-span-2 text-xs text-gray-500 font-mono">
+                                        {formatDate(file.recordDate) || file.year || '-'}
+                                    </div>
+                                )}
 
                                 <div className="col-span-4 md:col-span-2 text-xs text-gray-500 font-mono">
                                     {formatDate(file.uploadDate)}
