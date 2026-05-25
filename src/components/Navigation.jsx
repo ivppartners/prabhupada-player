@@ -15,7 +15,7 @@ const Navigation = ({ className = "" }) => {
                         key={item.to}
                         to={item.to}
                         className={({ isActive }) =>
-                            `relative px-4 py-2 md:px-6 md:py-3 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 flex items-center gap-2 z-10 w-full justify-center md:w-auto ${isActive ? 'text-white' : 'text-gray-400 hover:text-white'}`
+                            `relative px-4 py-2 md:px-6 md:py-3 rounded-xl text-xs md:text-sm font-bold transition-all duration-300 flex items-center gap-2 z-10 w-full justify-center md:w-auto touch-manipulation ${isActive ? 'text-white' : 'text-gray-400 hover-trigger'}`
                         }
                     >
                         {({ isActive }) => (

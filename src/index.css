@@ -44,3 +44,10 @@ body {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: #6b7280;
 }
+
+/* Media query to only enable hover state on hoverable devices (prevents double tap issues on iOS touchscreens) */
+@media (hover: hover) {
+  .hover-trigger:hover {
+    color: #ffffff !important;
+  }
+}
