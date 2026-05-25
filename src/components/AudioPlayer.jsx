@@ -16,9 +16,12 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
     const [isMuted, setIsMuted] = useState(false);
     const [isHovering, setIsHovering] = useState(false);
     const [isDescriptionVisible, setIsDescriptionVisible] = useState(false);
+    const [audioError, setAudioError] = useState(null);
+
 
     // Load and play file when currentFile changes
     useEffect(() => {
+        setAudioError(null);
         if (currentFile && audioRef.current) {
             if (initialTime > 0) {
                 audioRef.current.currentTime = initialTime;
@@ -32,6 +35,7 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
                 });
         }
     }, [currentFile, initialTime]);
+
 
     // Save playback position
     useEffect(() => {
@@ -90,6 +94,13 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
         }
     };
 
+    const handleAudioError = (e) => {
+        console.error("Audio error:", e);
+        setAudioError("Nepavyko paleisti audio įrašo. Patikrinkite ryšį arba failą.");
+        setIsPlaying(false);
+    };
+
+
     if (!currentFile) return null;
 
     const progressPercent = duration ? (currentTime / duration) * 100 : 0;
@@ -111,14 +122,23 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
                     <Visualizer audioRef={audioRef} isPlaying={isPlaying} />
                 </div>
 
-                <audio
+                 <audio
                     ref={audioRef}
                     crossOrigin="anonymous" // Needed for Visualizer to work with some CORS policies if deployed
                     src={api.getStreamUrl(currentFile.id)}
                     onTimeUpdate={handleTimeUpdate}
                     onLoadedMetadata={handleLoadedMetadata}
                     onEnded={onNext}
+                    onError={handleAudioError}
                 />
+
+                {/* Audio Error Alert Banner */}
+                {audioError && (
+                    <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-red-600/90 text-white text-xs px-4 py-1.5 rounded-full shadow-lg border border-red-500/20 backdrop-blur-md z-40 flex items-center gap-2 animate-bounce pointer-events-auto">
+                        <FontAwesomeIcon icon="exclamation-triangle" />
+                        <span>{audioError}</span>
+                    </div>
+                )}
 
                 {/* Progress Bar (Top Edge) - Thicker and interactive */}
                 <div
@@ -128,6 +148,7 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
                     onMouseEnter={() => setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}
                 >
+
                     <motion.div
                         className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 relative"
                         style={{ width: `${progressPercent}%` }}
