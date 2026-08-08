@@ -19,14 +19,16 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
     const [audioError, setAudioError] = useState(null);
 
 
+    const pendingInitialTimeRef = useRef(initialTime);
+
+    useEffect(() => {
+        pendingInitialTimeRef.current = initialTime;
+    }, [initialTime]);
+
     // Load and play file when currentFile changes
     useEffect(() => {
         setAudioError(null);
         if (currentFile && audioRef.current) {
-            if (initialTime > 0) {
-                audioRef.current.currentTime = initialTime;
-            }
-
             audioRef.current.play()
                 .then(() => setIsPlaying(true))
                 .catch(e => {
@@ -34,8 +36,7 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
                     setIsPlaying(false);
                 });
         }
-    }, [currentFile, initialTime]);
-
+    }, [currentFile]);
 
     // Save playback position
     useEffect(() => {
@@ -48,6 +49,73 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
         return () => clearInterval(interval);
     }, [currentFile, isPlaying]);
 
+    // MediaSession API setup for lock screen controls & background playback
+    useEffect(() => {
+        if (!currentFile || !('mediaSession' in navigator)) return;
+
+        try {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: currentFile.title || 'Paskaita',
+                artist: 'A.C. Bhaktivedanta Swami Prabhupada',
+                album: 'Prabhupados paskaitos lietuvių kalba',
+                artwork: [
+                    { src: '/prabhupada.ico', sizes: '96x96', type: 'image/x-icon' }
+                ]
+            });
+
+            navigator.mediaSession.setActionHandler('play', () => {
+                if (audioRef.current) {
+                    audioRef.current.play().then(() => setIsPlaying(true)).catch(console.error);
+                }
+            });
+
+            navigator.mediaSession.setActionHandler('pause', () => {
+                if (audioRef.current) {
+                    audioRef.current.pause();
+                    setIsPlaying(false);
+                }
+            });
+
+            if (onPrev) {
+                navigator.mediaSession.setActionHandler('previoustrack', onPrev);
+            }
+            if (onNext) {
+                navigator.mediaSession.setActionHandler('nexttrack', onNext);
+            }
+
+            navigator.mediaSession.setActionHandler('seekto', (details) => {
+                if (details.seekTime !== undefined && audioRef.current) {
+                    audioRef.current.currentTime = details.seekTime;
+                    setCurrentTime(details.seekTime);
+                }
+            });
+        } catch (e) {
+            console.warn("MediaSession initialization failed:", e);
+        }
+    }, [currentFile, onNext, onPrev]);
+
+    // Update MediaSession playback state
+    useEffect(() => {
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+        }
+    }, [isPlaying]);
+
+    // Update MediaSession position state for seek bar on lock screen
+    useEffect(() => {
+        if ('mediaSession' in navigator && 'setPositionState' in navigator.mediaSession && duration > 0) {
+            try {
+                navigator.mediaSession.setPositionState({
+                    duration: duration,
+                    playbackRate: audioRef.current?.playbackRate || 1,
+                    position: currentTime
+                });
+            } catch (e) {
+                // Ignore edge case errors when position > duration
+            }
+        }
+    }, [currentTime, duration]);
+
     const togglePlay = () => {
         if (audioRef.current.paused) {
             audioRef.current.play();
@@ -59,13 +127,25 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
     };
 
     const handleTimeUpdate = () => setCurrentTime(audioRef.current.currentTime);
-    const handleLoadedMetadata = () => setDuration(audioRef.current.duration);
+    
+    const handleLoadedMetadata = () => {
+        if (!audioRef.current) return;
+        const dur = audioRef.current.duration;
+        setDuration(dur);
+        if (pendingInitialTimeRef.current > 0 && pendingInitialTimeRef.current < dur) {
+            audioRef.current.currentTime = pendingInitialTimeRef.current;
+            setCurrentTime(pendingInitialTimeRef.current);
+            pendingInitialTimeRef.current = 0;
+        }
+    };
 
     const handleSeek = (e) => {
-        // Custom seek logic for div-based progress bar
-        if (!progressBarRef.current) return;
+        if (!progressBarRef.current || !audioRef.current) return;
         const rect = progressBarRef.current.getBoundingClientRect();
-        const x = e.clientX - rect.left;
+        const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
+        if (clientX === undefined) return;
+
+        const x = clientX - rect.left;
         const percentage = Math.min(Math.max(x / rect.width, 0), 1);
         const time = percentage * duration;
 
@@ -124,7 +204,8 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
 
                  <audio
                     ref={audioRef}
-                    crossOrigin="anonymous" // Needed for Visualizer to work with some CORS policies if deployed
+                    crossOrigin="anonymous"
+                    playsInline
                     src={api.getStreamUrl(currentFile.id)}
                     onTimeUpdate={handleTimeUpdate}
                     onLoadedMetadata={handleLoadedMetadata}
@@ -142,8 +223,10 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
 
                 {/* Progress Bar (Top Edge) - Thicker and interactive */}
                 <div
-                    className="absolute -top-1 left-0 w-full h-2 bg-gray-600/50 cursor-pointer group z-30 hover:h-3 transition-all"
+                    className="absolute -top-1 left-0 w-full h-2 bg-gray-600/50 cursor-pointer group z-30 hover:h-3 transition-all touch-none"
                     onClick={handleSeek}
+                    onTouchStart={handleSeek}
+                    onTouchMove={handleSeek}
                     ref={progressBarRef}
                     onMouseEnter={() => setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}

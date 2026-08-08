@@ -26,10 +26,15 @@ const FileList = ({ files, onPlay, currentFileId, filter = '' }) => {
     const sortedFiles = useMemo(() => {
         let sortableFiles = [...files];
         if (filter) {
+            const query = filter.toLowerCase().trim();
             sortableFiles = sortableFiles.filter(f =>
-                f.title.toLowerCase().includes(filter.toLowerCase()) ||
-                f.description?.toLowerCase().includes(filter.toLowerCase()) ||
-                f.location?.toLowerCase().includes(filter.toLowerCase())
+                f.title?.toLowerCase().includes(query) ||
+                f.description?.toLowerCase().includes(query) ||
+                f.location?.toLowerCase().includes(query) ||
+                f.book?.toLowerCase().includes(query) ||
+                (f.year && String(f.year).includes(query)) ||
+                (f.chapter && String(f.chapter).includes(query)) ||
+                (f.verse && String(f.verse).includes(query))
             );
         }
         if (sortConfig !== null) {
@@ -41,16 +46,17 @@ const FileList = ({ files, onPlay, currentFileId, filter = '' }) => {
                 let isBEmpty = valB === null || valB === undefined || valB === '';
 
                 if (isAEmpty && isBEmpty) return 0;
-                if (isAEmpty) return sortConfig.direction === 'ascending' ? -1 : 1;
-                if (isBEmpty) return sortConfig.direction === 'ascending' ? 1 : -1;
+                if (isAEmpty) return 1; // Empty values go to the bottom
+                if (isBEmpty) return -1;
 
-                if (valA < valB) {
-                    return sortConfig.direction === 'ascending' ? -1 : 1;
+                let res = 0;
+                if (typeof valA === 'number' && typeof valB === 'number') {
+                    res = valA - valB;
+                } else {
+                    res = String(valA).localeCompare(String(valB), 'lt', { numeric: true, sensitivity: 'base' });
                 }
-                if (valA > valB) {
-                    return sortConfig.direction === 'ascending' ? 1 : -1;
-                }
-                return 0;
+
+                return sortConfig.direction === 'ascending' ? res : -res;
             });
         }
         return sortableFiles;
@@ -115,7 +121,7 @@ const FileList = ({ files, onPlay, currentFileId, filter = '' }) => {
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ delay: index * 0.03, duration: 0.2 }}
+                                transition={{ delay: Math.min(index * 0.01, 0.15), duration: 0.2 }}
                                 onClick={() => onPlay(file)}
                                 className={`grid grid-cols-12 gap-4 py-3 px-6 items-center rounded-xl cursor-pointer group transition-all duration-200 border border-transparent ${currentFileId === file.id
                                     ? 'bg-indigo-600/20 border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.15)]'
