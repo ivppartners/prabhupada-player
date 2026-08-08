@@ -141,16 +141,30 @@ const AudioPlayer = ({ currentFile, onNext, onPrev, initialTime = 0 }) => {
 
     const handleSeek = (e) => {
         if (!progressBarRef.current || !audioRef.current) return;
-        const rect = progressBarRef.current.getBoundingClientRect();
-        const clientX = e.touches && e.touches.length > 0 ? e.touches[0].clientX : e.clientX;
-        if (clientX === undefined) return;
 
+        const totalDuration = audioRef.current.duration || duration;
+        if (!totalDuration || !isFinite(totalDuration) || totalDuration <= 0) return;
+
+        let clientX;
+        if (e.touches && e.touches.length > 0) {
+            clientX = e.touches[0].clientX;
+        } else if (e.changedTouches && e.changedTouches.length > 0) {
+            clientX = e.changedTouches[0].clientX;
+        } else if (typeof e.clientX === 'number') {
+            clientX = e.clientX;
+        }
+
+        if (clientX === undefined || clientX === null) return;
+
+        const rect = progressBarRef.current.getBoundingClientRect();
         const x = clientX - rect.left;
         const percentage = Math.min(Math.max(x / rect.width, 0), 1);
-        const time = percentage * duration;
+        const time = percentage * totalDuration;
 
-        audioRef.current.currentTime = time;
-        setCurrentTime(time);
+        if (isFinite(time) && time >= 0) {
+            audioRef.current.currentTime = time;
+            setCurrentTime(time);
+        }
     };
 
     const skip = (seconds) => {
