@@ -1,4 +1,6 @@
-import prabhupadaImg from '../assets/prabhupada.png';
+import prabhupadaWebp from '../assets/prabhupada.webp';
+import prabhupadaWebp2x from '../assets/prabhupada-2x.webp';
+import prabhupadaFallback from '../assets/prabhupada.png';
 import Navigation from './Navigation';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -9,7 +11,20 @@ const Layout = ({ children, searchQuery, onSearch }) => {
                 <div className="ml-8 mr-4">
                     <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center">
                         <div className="relative mb-3 md:mb-0 md:mr-8 w-full md:w-auto">
-                            <img src={prabhupadaImg} alt="Prabhupada" className="hidden md:block h-[150px] md:h-[350px] w-full md:w-auto rounded-lg object-cover object-top shadow-2xl scale-x-[-1]" />
+                            <picture className="hidden md:block">
+                                <source
+                                    srcSet={`${prabhupadaWebp} 1x, ${prabhupadaWebp2x} 2x`}
+                                    type="image/webp"
+                                />
+                                <img
+                                    src={prabhupadaFallback}
+                                    alt="Prabhupada"
+                                    width="350"
+                                    height="350"
+                                    fetchPriority="high"
+                                    className="h-[150px] md:h-[350px] w-full md:w-auto rounded-lg object-cover object-top shadow-2xl scale-x-[-1]"
+                                />
+                            </picture>
                             {/* Mobile Navigation & Search */}
                             <div className="md:hidden w-full flex flex-col gap-4 mt-2">
                                 <Navigation className="" />

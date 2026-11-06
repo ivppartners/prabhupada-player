@@ -3,7 +3,6 @@ import { useLocation } from 'react-router-dom';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { formatDate } from '../utils/format';
 import { motion, AnimatePresence } from 'framer-motion';
-import prabhupadaImg from '../assets/prabhupada.png';
 
 const FileList = ({ files, onPlay, currentFileId, filter = '' }) => {
     const location = useLocation();
@@ -78,13 +77,7 @@ const FileList = ({ files, onPlay, currentFileId, filter = '' }) => {
     return (
         <div className="w-full bg-gray-900/40 backdrop-blur-lg rounded-2xl shadow-2xl border border-white/5 overflow-hidden flex flex-col h-full max-h-[80vh] relative">
             {/* Mobile Background Image & Overlay */}
-            <div className="absolute inset-0 z-0 md:hidden opacity-100 pointer-events-none"
-                style={{
-                    backgroundImage: `url(${prabhupadaImg})`,
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'top center'
-                }}
-            />
+            <div className="mobile-hero-bg absolute inset-0 z-0 md:hidden opacity-100 pointer-events-none" />
             <div className="absolute inset-0 z-0 md:hidden bg-black/70 pointer-events-none" />
 
             {/* Content Container - Ensure z-index is higher than background */}

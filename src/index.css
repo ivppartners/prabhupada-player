@@ -51,3 +51,14 @@ body {
     color: #ffffff !important;
   }
 }
+
+.mobile-hero-bg {
+  background-image: url("./assets/prabhupada.png");
+  background-image: image-set(
+    url("./assets/prabhupada.webp") type("image/webp") 1x,
+    url("./assets/prabhupada-2x.webp") type("image/webp") 2x,
+    url("./assets/prabhupada.png") type("image/jpeg") 1x
+  );
+  background-size: cover;
+  background-position: top center;
+}
